@@ -1,0 +1,45 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: infra-monitor
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - POSTGRES_URL=postgresql://monitor:monitor123@postgres:5432/infrastructure_monitor
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+    depends_on:
+      - redis
+      - postgres
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+
+  redis:
+    image: redis:7-alpine
+    container_name: infra-monitor-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: infra-monitor-postgres
+    environment:
+      - POSTGRES_DB=infrastructure_monitor
+      - POSTGRES_USER=monitor
+      - POSTGRES_PASSWORD=monitor123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  redis_data:
+  postgres_data:
