@@ -1,4 +1,5 @@
 services:
+# Infrastructure Monitor API Service
   api:
     build:
       context: ..
@@ -19,7 +20,7 @@ services:
       - redis
       - postgres
     command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
-
+# Redis Service
   redis:
     image: redis:7-alpine
     container_name: infra-monitor-redis
@@ -27,7 +28,7 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
-
+# PostgreSQL Service
   postgres:
     image: postgres:15-alpine
     container_name: infra-monitor-postgres
@@ -39,7 +40,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
+# Volumes for data persistence
 volumes:
   redis_data:
   postgres_data:
