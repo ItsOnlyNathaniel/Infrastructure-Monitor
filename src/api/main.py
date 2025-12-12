@@ -1,5 +1,6 @@
 #Imports
 from fastapi import FastAPI
+from database.models import init_db
 import asyncio
 import logging
 
@@ -24,6 +25,8 @@ async def root():
 async def event_startup():
     await redis_client.conncect()
     logger.info("Starting up Infra Monitor API")
+    await init_db()
+    logger.info("Database initialized")
 
 @app.on_event("shutdown")
 async def event_shutdown():

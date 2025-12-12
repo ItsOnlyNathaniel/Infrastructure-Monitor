@@ -17,11 +17,18 @@ services:
       - ./src:/app/src
       - ./tests:/app/tests
     depends_on:
-      - redis
-      - postgres
-    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload
+      postgres:
+          condition: service_healthy
+      redis:
+          condition: service_healthy
+    command: uvicorn src.api.main:app --host 0.0.0.0 --port 8000 --reload
 # Redis Service
   redis:
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     image: redis:7-alpine
     container_name: infra-monitor-redis
     ports:
@@ -30,6 +37,11 @@ services:
       - redis_data:/data
 # PostgreSQL Service
   postgres:
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U monitor"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     image: postgres:15-alpine
     container_name: infra-monitor-postgres
     environment:
