@@ -2,15 +2,15 @@ services:
 # Infrastructure Monitor API Service
   api:
     build:
-      context: ..
-      dockerfile: docker/Dockerfile
+      context: .
+      dockerfile: Dockerfile
     container_name: infra-monitor
     ports:
       - "8000:8000"
     environment:
       - REDIS_URL=redis://redis:6379
       - POSTGRES_URL=postgresql://monitor:monitor123@postgres:5432/infrastructure_monitor
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+            - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION:-us-east-1}
     volumes:

@@ -1,27 +1,37 @@
-from fastapi import FastAPI
-from pydantic import BaseModel, ValidationError
-from datetime import datetime
+from fastapi import FastAPI, Depends
+from fastapi.exceptions import HTTPException
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, create_engine
+from sqlalchemy.orm import declarative_base
 
-class Incident(BaseModel):
-    id: int
-    name: str
-    time: datetime
+SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
+engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
+Base = declarative_base()
+
+class Incident(Base):
+    __tablename__ = "incidents"
+    id = Column(Integer, primary_key=True, index = True)
+    name = Column(String, index=True)
+    time = Column(DateTime)
     code: str
 
-class Services(BaseModel):
-    id: int
-    name: str
+class Services(Base):
+    __tablename__ = "Services"
+    id = Column(Integer, primary_key=True, index = True)
+    name = Column(String, index=True)
     code: str
-    is_active: bool
-    status: str
+    is_active = Column(Boolean, default=True)
+    status = Column(String)
 
-class RemediationLogs(BaseModel):
-    id: int
-    name: str
-    time: datetime
-    status: str
+class RemediationLogs(Base):
+    __tablename__ = "remediation_logs"
+    id = Column(Integer, primary_key=True, index = True)
+    name = Column(String, index=True)
+    time = Column(DateTime)
+    action = Column(String)
 
-class Configurations(BaseModel):
-    id: int
-    name:str
+class Configurations(Base):
+    __tablename__ = "configurations"
+    id = Column(Integer, primary_key=True, index = True)
+    name = Column(String, index=True)
     
+Base.metadata.create_all(bind=engine)
