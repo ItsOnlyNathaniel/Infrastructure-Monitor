@@ -1,3 +1,4 @@
+# conftest.py - Unit test configuration and fixtures for FastAPI application
 #Imports
 from typing import Generator
 import pytest

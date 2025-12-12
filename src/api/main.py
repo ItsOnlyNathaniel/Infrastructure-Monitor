@@ -22,6 +22,7 @@ async def root():
 #Startup and shutdown events
 @app.on_event("startup")
 async def event_startup():
+    await redis_client.conncect()
     logger.info("Starting up Infra Monitor API")
 
 @app.on_event("shutdown")
