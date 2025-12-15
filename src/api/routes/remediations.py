@@ -1,13 +1,15 @@
 # Triggers and retrieves remediation actions for incidents
 #Imports
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from pydantic import BaseModel
 from datetime import datetime
 from src.services.RemediationService import RemediationService
+from src.core.database import get_db
 
-router = APIRouter
+
+router = APIRouter()
 
 #Class Definitions
 class RemediationResponse(BaseModel): # Structure of the remediation response
@@ -24,9 +26,9 @@ class RemediationRequest(BaseModel): # Structure of the remediation request
 
 
 @router.post("/trigger", response_model=RemediationResponse, status_code=200)
-async def trigger_remediation(request: RemediationRequest, db: AsyncSession = get_db()):
-
-    service = RemediationService(db)
+async def trigger_remediation(request: RemediationRequest, db: AsyncSession = Depends(get_db)):
+    pass
+    #service = RemediationService(db)
     # Choose remediation based on incident type
     #remediation_id = await service.create_remediation(
 
@@ -36,8 +38,8 @@ async def trigger_remediation(request: RemediationRequest, db: AsyncSession = ge
 
     #return remediationResponse(id, status, message)
 
-@router.get("{/remediation_id}")
-async def get_remediation_status(remediation_id: str, db: AsyncSession = get_db()):
+@router.get("/{remediation_id}")
+async def get_remediation_status(remediation_id: str, db: AsyncSession = Depends(get_db)):
     service = RemediationService(db)
     status = await service.get_remediation_status(remediation_id)
     return status
