@@ -1,9 +1,11 @@
 #Imports
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware # Cross-Origin Resource Sharing
 import asyncio
 import logging
 from database.models import init_db
 from src.api.routes import services, remediations
+
 
 # Logger and app initialisation
 logger=logging.getLogger(__name__)
@@ -12,6 +14,20 @@ app = FastAPI(
     description="Automated cloud infrastructure monitoring and remediation",
     version="1.0.0"
 )
+
+# Allows requests from browsers running on different domains
+app.add_middleware( 
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_headers=[""],
+)
+
+# Include routers
+app.include_router(services.router, prefix="/api/services", tags=["services"])
+app.include_router(remediations.router, prefix="/api/remediations", tags=["remediations"])
+
 # Root endpoint
 @app.get("/")
 async def root():
@@ -20,10 +36,6 @@ async def root():
         "status": "running",
         "version": "1.0.0"
         }
-
-# Include routers
-app.include_router(services.router, prefix="/api/services", tags=["services"])
-app.include_router(remediations.router, prefix="/api/remediations", tags=["remediations"])
 
 #Startup and shutdown events
 @app.on_event("startup")
