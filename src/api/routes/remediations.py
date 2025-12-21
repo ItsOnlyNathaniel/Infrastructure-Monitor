@@ -27,16 +27,19 @@ class RemediationRequest(BaseModel): # Structure of the remediation request
 
 @router.post("/trigger", response_model=RemediationResponse, status_code=200)
 async def trigger_remediation(request: RemediationRequest, db: AsyncSession = Depends(get_db)):
-    pass
-    #service = RemediationService(db)
-    # Choose remediation based on incident type
-    #remediation_id = await service.create_remediation(
+    service = RemediationService(db)
+
+    remediation_id = await service.create_remediation(
+        resource_id = request.resource.id,
+        resource_type = request.resource.type,
+        issue_type = request.issue_type
+    )
 
     #Wait for request approval to execute otherwise wait for approval
     #if approved status = "executing" + message
     #else status = "pending approval" + message
 
-    #return remediationResponse(id, status, message)
+    return remediationResponse(id, status, message)
 
 @router.get("/{remediation_id}")
 async def get_remediation_status(remediation_id: str, db: AsyncSession = Depends(get_db)):
