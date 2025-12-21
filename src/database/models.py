@@ -1,3 +1,4 @@
+from operator import index
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text
 from sqlalchemy.sql import func
 from sqlalchemy.orm import declarative_base
@@ -19,6 +20,7 @@ Base = declarative_base()
 class Incident(Base):
     __tablename__ = "incidents"
     id = Column(Integer, primary_key=True, index=True)
+    service_id = Column(Integer, index=True)
     name = Column(String, index=True)
     status = Column(String)
     description = Column(String)
