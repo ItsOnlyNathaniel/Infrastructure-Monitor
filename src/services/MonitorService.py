@@ -1,12 +1,14 @@
 # Imports
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List
-import select
-from src.database.models import Services, Incident
-from src.core.database import get_db
-from src.core.redis_client import redis_client
+from typing import Any, List
+from sqlalchemy import select
 from datetime import datetime
 import logging
+from src.core.database import get_db
+from src.database.models import Services, Incident
+from src.core.redis_client import redis_client
+from src.monitors.ec2Monitor import EC2Monitor
+from src.monitors.ecsMonitor import ECSMonitor
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +23,7 @@ class MonitorService:
 
     # Run health checks on specified resources
     async def check_resources(self, resource_type: str, resource_ids: List[str]):
-        monitor = self.monitors.get(resource_type.lower()) 
+        monitor: Any | None = self.monitors.get(resource_type.lower())
         if not monitor:
             raise ValueError(f"No monitor found for resource type: {resource_type}")
         
@@ -55,7 +57,7 @@ class MonitorService:
                         await self.db.commit()
 
                 else:
-                    logger.warning(f"Service not found in DB: {resource_id}")
+                    logger.warning("Service not found in DB: %s", resource_id)
 
                 #Cache the results
                 cache_key = f"health_check_{resource_type}_{resource_id}"
@@ -63,7 +65,7 @@ class MonitorService:
             
             #Catch exceptions and return error status
             except Exception as e:
-                logger.error(f"Error checking health of {resource_type} {resource_id}: {str(e)}")
+                logger.error("Error checking health of %s %s: %s", resource_type, resource_id, str(e))
                 results.append({
                     "resource_id": resource_id,
                     "resource_type": resource_type,

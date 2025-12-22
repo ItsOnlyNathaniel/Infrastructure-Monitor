@@ -2,7 +2,6 @@ import boto3
 import logging
 import os
 import re
-import dotenv
 
 logger = logging.getLogger(__name__)
 
@@ -40,29 +39,28 @@ class ECSInstance:
 
     async def _start_instance(self, instance_id: str):
         # Start a stopped instance
-        logger.info(f"Starting instance {instance_id}")
+        logger.info("Starting instance %s", instance_id)
         self.ecs.start_instance(InstanceIds=[instance_id])
 
     async def reboot_instance(self, cluster: str, service: str):
         # Force a new deployment to restart the service
-        logger.info(f"Rebooting service {service} in cluster {cluster} by forcing new deployment")
+        logger.info("Rebooting service %s in cluster %s by forcing new deployment", service, cluster)
         self.ecs.update_service(
             cluster=cluster,
             service=service,
             forceNewDeployment=True
         )
 
-    async def _restart_tasks(self, cluster: str, service: str):
+    async def restart_tasks(self, cluster: str, service: str):
         # Force restart of unhealthy tasks
-        logger.info(f"Restarting tasks for service {service}")
-    
+        logger.info("Restarting tasks for service %s", service)
         tasks_response = self.ecs.list_tasks(
             cluster=cluster,
             serviceName=service
         )
         # Stop tasks (ECS will restart them automatically)
         for task_arn in tasks_response.get('taskArns', []):
-            logger.info(f"Stopping task {task_arn}")
+            logger.info("Stopping task %s", task_arn)
             self.ecs.stop_task(cluster=cluster, task=task_arn)
 
     async def rollback_deployment(self, cluster: str, service: str): #Generated
@@ -73,7 +71,7 @@ class ECSInstance:
             cluster: ECS cluster name
             service: ECS service name
         """
-        logger.info(f"Rolling back deployment for service {service} in cluster {cluster}")
+        logger.info("Rolling back deployment for service %s in cluster %s", service, cluster)
         
         try:
             # Get current service configuration
@@ -91,7 +89,7 @@ class ECSInstance:
             if not current_task_def:
                 raise ValueError(f"No task definition found for service {service}")
             
-            logger.info(f"Current task definition: {current_task_def}")
+            logger.info("Current task definition: %s", current_task_def)
             
             # Extract task definition family and revision
             # Format: family:revision (e.g., "my-task-def:5")
@@ -102,11 +100,11 @@ class ECSInstance:
             task_family = task_def_parts[0]
             current_revision = int(task_def_parts[1])
             
-            logger.info(f"Task family: {task_family}, Current revision: {current_revision}")
+            logger.info("Task family: %s, Current revision: %s", task_family, current_revision)
             
             # Check if there's a previous revision
             if current_revision <= 1:
-                raise ValueError(f"No previous revision available. Current revision is {current_revision}")
+                raise ValueError("No previous revision available. Current revision is {current_revision}")
             
             # Get previous revision
             previous_revision = current_revision - 1
@@ -115,14 +113,14 @@ class ECSInstance:
             # Verify previous task definition exists
             try:
                 self.ecs.describe_task_definition(taskDefinition=previous_task_def)
-                logger.info(f"Previous task definition found: {previous_task_def}")
+                logger.info("Previous task definition found: %s", previous_task_def)
             except self.ecs.exceptions.ClientError as e:
                 if e.response['Error']['Code'] == 'ClientException':
-                    raise ValueError(f"Previous task definition {previous_task_def} not found")
+                    raise ValueError("Previous task definition %s not found: ", previous_task_def)
                 raise
             
             # Update service to use previous task definition
-            logger.info(f"Updating service to use task definition: {previous_task_def}")
+            logger.info("Updating service to use task definition: %s", previous_task_def)
             update_response = self.ecs.update_service(
                 cluster=cluster,
                 service=service,
@@ -130,8 +128,8 @@ class ECSInstance:
                 forceNewDeployment=True
             )
             
-            logger.info(f"Service update initiated. Deployment ID: {update_response['service']['deployments'][0]['id']}")
-            logger.info(f"Successfully rolled back service {service} to task definition {previous_task_def}")
+            logger.info("Service update initiated. Deployment ID: %s", update_response['service']['deployments'][0]['id'])
+            logger.info("Successfully rolled back service %s to task definition %s", service, previous_task_def)
             
             return {
                 "status": "success",
@@ -141,15 +139,15 @@ class ECSInstance:
             }
             
         except ValueError as e:
-            logger.error(f"Rollback failed: {str(e)}")
+            logger.error("Rollback failed: %s", str(e))
             raise
         except self.ecs.exceptions.ClientError as e:
             error_code = e.response['Error']['Code']
             error_message = e.response['Error']['Message']
-            logger.error(f"AWS API error during rollback: {error_code} - {error_message}")
-            raise Exception(f"Rollback failed: {error_code} - {error_message}")
+            logger.error("AWS API error during rollback: %s - %s", error_code, error_message)
+            raise Exception("Rollback failed: %s - %s", error_code, error_message)
         except Exception as e:
-            logger.error(f"Unexpected error during rollback: {str(e)}")
+            logger.error("Unexpected error during rollback: %s", str(e))
             raise
 
     async def remediate(self, resource_id: str, issue_type: str):
@@ -160,11 +158,11 @@ class ECSInstance:
             resource_id: ECS service identifier (ARN or cluster/service format)
             issue_type: Type of issue to remediate
         """
-        logger.info(f"Remediating ECS resource {resource_id} for error {issue_type}")
+        logger.info("Remediating ECS resource %s for error %s", resource_id, issue_type)
         
         # Parse resource_id to extract cluster and service
         cluster, service = self._parse_resource_id(resource_id)
-        logger.info(f"Parsed cluster: {cluster}, service: {service}")
+        logger.info("Parsed cluster: %s, service: %s", cluster, service)
 
         if issue_type == "failed_deployment":
             await self.rollback_deployment(cluster, service)
