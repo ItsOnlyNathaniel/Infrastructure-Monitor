@@ -1,0 +1,10 @@
+{
+    "pylint.args": [
+    "--disable=C0114,C0115,C0116"
+    ],
+    "python.analysis.typeCheckingMode": "off",
+    "basedpyright.analysis.diagnosticSeverityOverrides": {
+        "reportUnknownMemberType": "none",
+        "reportUnknownVariableType": "none",
+    }
+}

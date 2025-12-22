@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware # Cross-Origin Resource Sharing
 import asyncio
 import logging
-from database.models import init_db
+from src.database.models import init_db
 from src.api.routes import services, remediations
 
 
@@ -16,7 +16,7 @@ app = FastAPI(
 )
 
 # Allows requests from browsers running on different domains
-app.add_middleware( 
+app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
@@ -48,4 +48,3 @@ async def event_startup():
 @app.on_event("shutdown")
 async def event_shutdown():
     logger.info("Shutting down Infra Monitor API")
-
