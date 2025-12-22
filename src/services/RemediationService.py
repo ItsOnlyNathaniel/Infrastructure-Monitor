@@ -1,10 +1,12 @@
 # Imports
 from sqlalchemy.ext.asyncio import AsyncSession
-import select
+from sqlalchemy import select
 import logging
 import uuid
 from datetime import datetime
 from src.database.models import Incident, RemediationLogs, Services
+from src.monitors.ec2Monitor import EC2Monitor
+from src.monitors.ecsMonitor import ECSMonitor
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +26,6 @@ class RemediationService:
 
         if not status:
             raise ValueError(f"Remediation not found: {remediation_id}")
-        
         return {
             "remediation_id": str(status.id),
             "status": status.status,
@@ -62,7 +63,7 @@ class RemediationService:
         await self.db.commit()
         await self.db.refresh(remediation)
 
-        logger.info(f"Created remediation {remediation.id} for {resource_type}:{resource_id} ")
+        logger.info("Created remediation %s for %s: %s ", remediation.id, resource_type, resource_id)
 
 
     async def execute_remediation(self, remediation_id: str):
@@ -70,7 +71,6 @@ class RemediationService:
         remediation_search = select(RemediationLogs).where(RemediationLogs.id == int(remediation_id))
         remediation_result = await self.db.execute(remediation_search)
         remediation = remediation_result.scalar_one_or_none()
-        
         remediation.status = "executing"
         await self.db.commit()
 
@@ -79,7 +79,7 @@ class RemediationService:
             service_result = await self.db.execute(service_search)
             service = service_result.scalar_one()
 
-            remediator = self.remediations.get(service.resource_type.lower())
+            remediator = self.remediators.get(service.resource_type.lower())
             if not remediator:
                 raise ValueError(f"No rememdiator for type {service.resource_type}")
 
@@ -89,10 +89,10 @@ class RemediationService:
             remediation.completed_at = datetime.utcnow()
             await self.db.commit()
 
-            logger.info(f"Executed remediation {remediation.id} successfully")
+            logger.info("Executed remediation %s successfully", remediation.id)
 
         except Exception as e:
-            logger.error(f"Remediation {remediation_id} failed: {str(e)}")
+            logger.error("Remediation %s failed: %s", remediation_id, str(e))
             remediation.status = "failed"
             remediation.error_message = str(e)
             remediation.completed_at = datetime.utcnow()

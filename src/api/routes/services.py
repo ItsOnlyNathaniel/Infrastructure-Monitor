@@ -31,8 +31,8 @@ async def run_health_check(request: MonitorRequest, db: AsyncSession = Depends(g
 
 
 @router.get("/{resource_type}/{resource_id}", response_model=MonitorStatus, status_code=200)
-async def get_resource_status(resource_type: str, resource_id: str, db : AsyncSession = get_db()):
-
+async def get_resource_status(resource_type: str, resource_id: str, db: AsyncSession = Depends(get_db())):
+    pass
     service = MonitorService(db)
     status = await service.get_resource_status(resource_type, resource_id)
 

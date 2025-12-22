@@ -5,7 +5,7 @@ import asyncio
 import logging
 from src.database.models import init_db
 from src.api.routes import services, remediations
-
+from src.core.redis_client import redis_client
 
 # Logger and app initialisation
 logger=logging.getLogger(__name__)

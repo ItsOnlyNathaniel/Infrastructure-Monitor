@@ -3,7 +3,7 @@ from pydantic import Field, BaseSettings
 class Settings(BaseSettings):
     #API Settings
     api_host: str = Field(default="0.0.0.0", alias="API_HOST")
-    api_port: int = Field(default=8000, alias="API_PORT") 
+    api_port: int = Field(default=8000, alias="API_PORT")
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
 
     #Database Settings
@@ -25,4 +25,4 @@ class Settings(BaseSettings):
         env_file = ".env"
         case_sensitive=False
 
-settings = Settings()    
+settings = Settings()
