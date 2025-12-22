@@ -1,21 +1,10 @@
 from operator import index
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text
 from sqlalchemy.sql import func
-from sqlalchemy.orm import declarative_base
 from sqlalchemy.ext.asyncio import create_async_engine
+from src.core.database import Base, engine, database_url
 
 import os
-
-raw_db_url = os.getenv("POSTGRES_URL")
-
-DATABASE_URL = raw_db_url
-if DATABASE_URL.startswith("postgresql://"):
-    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://", 1)
-
-# Async engine for Postgres
-engine = create_async_engine(DATABASE_URL, future=True, echo=False)
-
-Base = declarative_base()
 
 class Incident(Base):
     __tablename__ = "incidents"

@@ -4,7 +4,11 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from src.core.config import settings
 
 #  Database configuration
-database_url = settings.postgres_url.replace("postgresql://", "postgresql+asyncpg://")
+raw_db_url = settings.postgres_url
+
+database_url = raw_db_url
+if database_url.startswith("postgresql://"):
+    database_url = database_url.replace("postgresql://", "postgresql+asyncpg://", 1)
 # Create async engine
 engine = create_async_engine(database_url, echo=False, future=True)
 # Create session factory
