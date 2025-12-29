@@ -15,7 +15,7 @@ class ECSMonitor:
             #missing endpoint_url
         )
     
-    def health_check(self, service_arn: str): #Service_ARN -> Service_AmazonResourceName
+    async def health_check(self, service_arn: str): #Service_ARN -> Service_AmazonResourceName
         issues = []
         try:
             cluster = "default" #TODO: Parse from ARN properly
@@ -36,4 +36,3 @@ class ECSMonitor:
             logger.error("Error checking ECS service %s", service_arn) 
             status = "error"
             issues.append(str(e))
-        pass

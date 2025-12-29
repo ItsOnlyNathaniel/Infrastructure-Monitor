@@ -3,10 +3,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 import logging
 import uuid
-from datetime import datetime
+import datetime
 from src.database.models import Incident, RemediationLogs, Services
-from src.monitors.ec2Monitor import EC2Monitor
-from src.monitors.ecsMonitor import ECSMonitor
+from src.remediators.ec2_remediator import EC2Instance
+from src.remediators.ecs_remediator import ECSInstance
 
 logger = logging.getLogger(__name__)
 
@@ -14,8 +14,8 @@ class RemediationService:
     def __init__(self, db: AsyncSession):
         self.db = db
         self.remediators = {
-            "ec2": EC2Monitor(),
-            "ecs": ECSMonitor(),
+            "ec2": EC2Instance(),
+            "ecs": ECSInstance(),
         }
 
 
@@ -25,7 +25,7 @@ class RemediationService:
         status = status_result.scalar_one_or_none()
 
         if not status:
-            raise ValueError(f"Remediation not found: {remediation_id}")
+            raise ValueError("Remediation not found: %s" % remediation_id)
         return {
             "remediation_id": str(status.id),
             "status": status.status,
@@ -42,15 +42,15 @@ class RemediationService:
         # Find the service
         service_search = select(Services).where(Services.resource_id == resource_id)
         service_result = await self.db.execute(service_search)
-        service = service_result.scalar_one_or_none
+        service = service_result.scalar_one_or_none()
         # If isn't found
         if not service:
-            raise ValueError(f"Service not found: {resource_id}")
+            raise ValueError("Service not found: %s" % resource_id)
 
         # Find the incident
         incident_search = select(Incident).where(Incident.service_id == service.id, Incident.status =="open").order_by(Incident.created_at.desc())
         incident_result = await self.db.execute(incident_search)
-        incident = incident_result.scalar_one_or_none
+        incident = incident_result.scalar_one_or_none()
 
         #Create a remediation log
         remediation = RemediationLogs(
@@ -81,12 +81,12 @@ class RemediationService:
 
             remediator = self.remediators.get(service.resource_type.lower())
             if not remediator:
-                raise ValueError(f"No rememdiator for type {service.resource_type}")
+                raise ValueError("No rememdiator for type %s" % service.resource_type)
 
             await remediator.remediate(service.resource_id, remediation.action)
 
             remediation.status = "completed"
-            remediation.completed_at = datetime.utcnow()
+            remediation.completed_at = datetime.datetime.now()
             await self.db.commit()
 
             logger.info("Executed remediation %s successfully", remediation.id)
@@ -95,6 +95,6 @@ class RemediationService:
             logger.error("Remediation %s failed: %s", remediation_id, str(e))
             remediation.status = "failed"
             remediation.error_message = str(e)
-            remediation.completed_at = datetime.utcnow()
+            remediation.completed_at = datetime.datetime.now()
             await self.db.commit()
             raise

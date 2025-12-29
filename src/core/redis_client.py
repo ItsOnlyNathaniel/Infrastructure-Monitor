@@ -26,6 +26,10 @@ class RedisClient:
             return None
 
     async def set(self, key: str, value: dict, ttl: int = 300):
-        pass
+            await self.client.setex(
+            key,
+            ttl,
+            json.dumps(value)
+        )
 
 redis_client = RedisClient()

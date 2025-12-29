@@ -28,7 +28,7 @@ class EC2Monitor:
             #endpoint_url
         )
     
-    def health_check(self, instance_id: str):
+    async def health_check(self, instance_id: str):
         issues = []
 
         try:

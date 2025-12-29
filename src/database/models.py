@@ -35,6 +35,7 @@ class RemediationLogs(Base):
     __tablename__ = "remediation_logs"
     id = Column(Integer, primary_key=True, index=True)
     incident_id = Column(Integer)
+    service_id = Column(Integer)
     status = Column(String)
     error_message = Column(String)
     started_at = Column(DateTime(timezone=True), nullable=True)
