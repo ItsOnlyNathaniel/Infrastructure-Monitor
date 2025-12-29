@@ -1,16 +1,19 @@
 # conftest.py - Unit test configuration and fixtures for FastAPI application
+# pylint: disable=redefined-outer-name
 #Imports
 from typing import Generator
-import pytest
-import httpx
+import pytest  # type: ignore
+import httpx  # type: ignore
 import os
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.pool import StaticPool
+from fastapi.testclient import TestClient  # type: ignore
+from sqlalchemy import create_engine  # type: ignore
+from sqlalchemy.orm import sessionmaker  # type: ignore
+from sqlalchemy.pool import StaticPool  # type: ignore
 
 from src.api.main import app
 from src.database.models import Base
+from src.core.database import get_db
+from src.services.MonitorService import MonitorService
 
 
 # Setting up an in-memory database for testing
@@ -44,8 +47,52 @@ def db_session():
 @pytest.fixture(scope="function")
 def client(db_session) -> Generator[TestClient, None, None]:
     """Create a test client for making HTTP requests to the FastAPI app."""
+    _ = db_session  # ensure fixture is requested to satisfy linters
     with TestClient(app) as test_client:
         yield test_client
+
+
+# --- Dependency overrides used across tests ---
+@pytest.fixture()
+def override_monitor_check(monkeypatch):
+    async def fake_check_resources(_self, resource_type: str, resource_ids):
+        return [
+            {
+                "resource_id": resource_ids[0],
+                "resource_type": resource_type,
+                "status": "healthy",
+                "last_check": "2024-01-01T00:00:00Z",
+                "issues": [],
+            }
+        ]
+
+    monkeypatch.setattr(MonitorService, "check_resources", fake_check_resources)
+    return fake_check_resources
+
+
+@pytest.fixture()
+def override_monitor_get(monkeypatch):
+    async def fake_get_resource_status(_self, rt: str, rid: str):
+        return {
+            "resource_id": rid,
+            "resource_type": rt,
+            "status": "healthy",
+            "last_check": "2024-01-01T00:00:00Z",
+            "issues": [],
+        }
+
+    monkeypatch.setattr(MonitorService, "get_resource_status", fake_get_resource_status)
+    return fake_get_resource_status
+
+
+@pytest.fixture()
+def override_db():
+    async def _override_get_db():
+        yield None
+
+    app.dependency_overrides[get_db] = _override_get_db
+    yield _override_get_db
+    app.dependency_overrides.clear()
 
 
 # Fixture for testing against Docker container
@@ -62,7 +109,7 @@ def docker_client():
             if response.status_code == 200:
                 yield client
             else:
-                pytest.skip(f"Docker container not responding correctly at {docker_url}")
+                pytest.skip("Docker container not responding correctly at %s", docker_url)
         except httpx.ConnectError:
-            pytest.skip(f"Docker container not accessible at {docker_url}. Make sure it's running.")
+            pytest.skip("Docker container not accessible at %s. Make sure it's running.", docker_url)
        

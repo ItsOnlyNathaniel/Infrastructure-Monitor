@@ -2,7 +2,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Any, List
 from sqlalchemy import select
-from datetime import datetime
+import datetime
 import logging
 from src.core.database import get_db
 from src.database.models import Services, Incident
@@ -71,7 +71,7 @@ class MonitorService:
                     "resource_type": resource_type,
                     "status": "error",
                     "issues": [str(e)],
-                    "last_check": datetime.now().isoformat()
+                    "last_check": datetime.now()
                 })
 
     # Run a fresh check or get cached results
