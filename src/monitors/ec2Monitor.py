@@ -1,21 +1,14 @@
 # Imports
 import boto3
 import logging
-<<<<<<< HEAD
 import datetime
-=======
-#import datetime
->>>>>>> e3d526b (Keeping up with linting and string formatting)
 import os
 
 logger = logging.getLogger(__name__)
 
 class EC2Monitor:
     def __init__(self):
-<<<<<<< HEAD
         #also missing endpoint_url
-=======
->>>>>>> e3d526b (Keeping up with linting and string formatting)
         self.ec2 = boto3.client(
             'ec2',
             region_name = os.getenv("AWS_DEFAULT_REGION"),
@@ -26,7 +19,6 @@ class EC2Monitor:
             region_name = os.getenv("AWS_DEFAULT_REGION"),
             endpoint_url = os.getenv("AWS_ENDPOINT_URL")
         )
-<<<<<<< HEAD
         self.cloudwatch = boto3.client(
             'cloudwatch',
             region_name = os.getenv("AWS_DEFAULT_REGION"),
@@ -77,8 +69,3 @@ class EC2Monitor:
             "last_check": datetime.utcnow().isoformat(),
             "issues": issues
         }
-=======
-    
-    def health_check(self, instance_id: str):
-        pass
->>>>>>> e3d526b (Keeping up with linting and string formatting)
