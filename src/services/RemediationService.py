@@ -20,22 +20,22 @@ class RemediationService:
 
 
     async def get_remediation_status(self, remediation_id: int):
-        status_search = select(RemediationLogs).where(RemediationLogs.id == int(remediation_id))
-        status_result = await self.db.execute(status_search)
-        status = status_result.scalar_one_or_none()
+        current_search = select(RemediationLogs).where(RemediationLogs.id == int(remediation_id))
+        current_result = await self.db.execute(current_search)
+        current = current_result.scalar_one_or_none()
 
-        if not status:
+        if not current:
             raise ValueError("Remediation not found: %s" % remediation_id)
         return {
-            "remediation_id": str(status.id),
-            "status": status.status,
-            "action": status.action,
-            "started_at": status.started_at.isoformat() if status.started_at else None,
-            "completed_at": status.completed_at.isoformat() if status.completed_at else None,
-            "error_message": status.error_message
+            "remediation_id": str(current.id),
+            "status": current.status,
+            "action": current.action,
+            "started_at": current.started_at.isoformat() if current.started_at else None,
+            "completed_at": current.completed_at.isoformat() if current.completed_at else None,
+            "error_message": current.error_message
         }
           
-
+    # Finds the service and incident, then creates a remediation log 
     async def create_remediation(self, resource_id: str, resource_type: str, issue_type: str):
         remediation_id = str(uuid.uuid4()) # New remediation record
 
@@ -65,7 +65,9 @@ class RemediationService:
 
         logger.info("Created remediation %s for %s: %s ", remediation.id, resource_type, resource_id)
 
+        return remediation_id
 
+    # Finds the affected service and executes the remediation using the appropriate remediator
     async def execute_remediation(self, remediation_id: str):
 
         remediation_search = select(RemediationLogs).where(RemediationLogs.id == int(remediation_id))
@@ -81,7 +83,7 @@ class RemediationService:
 
             remediator = self.remediators.get(service.resource_type.lower())
             if not remediator:
-                raise ValueError("No rememdiator for type %s" % service.resource_type)
+                raise ValueError("No remediator for type %s", service.resource_type)
 
             await remediator.remediate(service.resource_id, remediation.action)
 

@@ -5,6 +5,7 @@
     "basedpyright.analysis.diagnosticSeverityOverrides": {
         "reportUnknownMemberType": "none",
         "reportUnknownVariableType": "none",
+        "reportUnannotatedClassAttribute": "none" 
     },
     "python.analysis.typeCheckingMode": "off",
     
