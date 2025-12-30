@@ -8,7 +8,6 @@ logger = logging.getLogger(__name__)
 
 class ECSMonitor:
     def __init__(self):
-        #also missing endpoint_url
         self.ecs = boto3.client(
             'ecs',
             region_name = os.getenv("AWS_DEFAULT_REGION"),
