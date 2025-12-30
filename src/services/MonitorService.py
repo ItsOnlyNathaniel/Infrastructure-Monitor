@@ -41,7 +41,7 @@ class MonitorService:
                 # Update service status in database
                 if service:
                     service.status = status["status"]
-                    service.last_checked = datetime.now()
+                    service.last_checked = datetime.datetime.now()
                     await self.db.commit()
                     
                     #Create incident where issues are present

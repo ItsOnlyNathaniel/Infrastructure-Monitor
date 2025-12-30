@@ -12,7 +12,12 @@ class EC2Monitor:
         self.ec2 = boto3.client(
             'ec2',
             region_name = os.getenv("AWS_DEFAULT_REGION"),
-            #missing endpoint_url
+            endpoint_url = os.getenv("AWS_ENDPOINT_URL")
+        )
+        self.cloudwatch = boto3.client(
+            'cloudwatch',
+            region_name = os.getenv("AWS_DEFAULT_REGION"),
+            endpoint_url = os.getenv("AWS_ENDPOINT_URL")
         )
         self.cloudwatch = boto3.client(
             'cloudwatch',

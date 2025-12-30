@@ -12,7 +12,7 @@ class ECSMonitor:
         self.ecs = boto3.client(
             'ecs',
             region_name = os.getenv("AWS_DEFAULT_REGION"),
-            #missing endpoint_url
+            endpoint_url = os.getenv("AWS_ENDPOINT_URL")
         )
     
     async def health_check(self, service_arn: str): #Service_ARN -> Service_AmazonResourceName
