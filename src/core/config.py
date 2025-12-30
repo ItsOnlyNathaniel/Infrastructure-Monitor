@@ -13,8 +13,11 @@ class Settings(BaseSettings):
     redis_url: str = Field(alias="REDIS_URL")
 
     #AWS Settings
+    aws_region: str = Field(default="us-east-1", alias="AWS_DEFAULT_REGION")
+    aws_access_key_id: str = Field(default="test", alias="AWS_ACCESS_KEY_ID")
 
     #Localstack Settings
+    endpoint_url = Field(default=None, alias="AWS_ENDPOINT_URL")
 
     #Monitoring Settings
     health_check_interval: int = 60
