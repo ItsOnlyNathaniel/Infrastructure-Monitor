@@ -1,5 +1,4 @@
 import logging
-import datetime
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.models import Incident, Services, RemediationRules, RemediationLogs
@@ -61,9 +60,11 @@ class DecisionService:
 
         for rule in rules:
             if rule.attempt_count < rule.max_attempts:
-                logger.info("Matching remediation rule %s found for resource_type %s and issue_type %s", rule.id, resource_type, issue_type)
+                logger.info("Matching remediation rule %s found for resource_type %s and issue_type %s",
+                rule.id, resource_type, issue_type)
                 return rule
-            logger.info("No remediation rule found for resource_type %s and issue_type %s within attempt limits", resource_type, issue_type)
+            logger.info("No remediation rule found for resource_type %s and issue_type %s within attempt limits",
+             resource_type, issue_type)
 
 
     async def attempt_count(self, incident: Incident, rule: RemediationRules):

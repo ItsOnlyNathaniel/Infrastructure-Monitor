@@ -20,9 +20,10 @@ class Settings(BaseSettings):
     endpoint_url = Field(default=None, alias="AWS_ENDPOINT_URL")
 
     #Monitoring Settings
-    health_check_interval: int = 60
+    health_check_interval: int = 120 #TODO: Value should be reduced to 60 at a later stage
     remediation_timeout: int = 300
     max_retry_attempts: int = 3
+    alert_threshold: int = 3
 
     class Config:
         env_file = ".env"
