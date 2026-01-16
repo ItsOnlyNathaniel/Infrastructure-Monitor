@@ -34,8 +34,8 @@ class RemediationService:
             "completed_at": current.completed_at.isoformat() if current.completed_at else None,
             "error_message": current.error_message
         }
-          
-    # Finds the service and incident, then creates a remediation log 
+
+    # Finds the service and incident, then creates a remediation log
     async def create_remediation(self, resource_id: str, resource_type: str, issue_type: str):
         remediation_id = str(uuid.uuid4()) # New remediation record
 
@@ -100,3 +100,13 @@ class RemediationService:
             remediation.completed_at = datetime.datetime.now()
             await self.db.commit()
             raise
+
+    async def reject_remediation(self, remediation_id: str):
+        remediation_search = select(RemediationLogs).where(RemediationLogs.id == int(remediation_id))
+        remediation_result = await self.db.execute(remediation_search)
+        remediation = remediation_result.scalar_one_or_none()
+        remediation.status = "rejected"
+        remediation.completed_at = datetime.datetime.now()
+        await self.db.commit()
+        logger.info("Rejected remediation %s", remediation.id)
+        return remediation.id

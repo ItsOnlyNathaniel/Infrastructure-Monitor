@@ -46,7 +46,7 @@ async def create_remediation(request: RemediationRequest, db: AsyncSession = Dep
             resource_id = request.resource_id,
             completed_at = status['completed_at'],
             message = "Remediation triggered successfully"
-        ) 
+        )
 
     except ValueError as ve:
         raise HTTPException(status_code = 404, detail = str(ve)) from ve
@@ -80,7 +80,7 @@ async def execute_remediation(request: RemediationResponse, db: AsyncSession = D
 @router.get("/{remediation_id}/", response_model = RemediationResponse, status_code=200)
 async def get_remediation_status(remediation_id: str, db: AsyncSession = Depends(get_db)):
     service = RemediationService(db)
-    
+
     try:
         status = await service.get_remediation_status(remediation_id)
 

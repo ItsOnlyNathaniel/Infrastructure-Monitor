@@ -22,6 +22,16 @@ class EC2Instance:
         logger.info("Ending instance %s", instance_id)
         self.ec2.reboot_instance(InstanceIds=[instance_id])
 
+    async def switch_to_burstable(self, instance_id: str):
+        # Change instance type to a burstable type (e.g., t3.micro)
+        logger.info("Switching instance %s to burstable type", instance_id)
+        self.ec2.modify_instance_attribute(
+            InstanceId=instance_id,
+            InstanceType={
+                'Value': 't3.micro'
+            }
+        )
+
     async def reallocate_storage(self, instance_id: str):
         # Increase EBS volume size by 20%
         logger.info("Reallocating storage for instance %s", instance_id)
@@ -47,9 +57,10 @@ class EC2Instance:
     async def remediate(self, instance_id: str, issue_type: str):
         logger.info("Remediating EC2 instance %s for error %s", instance_id, issue_type)
 
-        #if-else statement for simple error types 
         if issue_type == "instance_stopped":
             await self.start_instance(instance_id)
+        elif issue_type == "cpu_credits_exhausted":
+            await self.switch_to_burstable(instance_id)
         elif issue_type == "status_check_failed":
             await self.reboot_instance(instance_id)
         elif issue_type == "storage_full":
