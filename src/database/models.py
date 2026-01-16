@@ -1,10 +1,11 @@
-from operator import index
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text
+from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.sql import func
 from sqlalchemy.ext.asyncio import create_async_engine
 from src.core.database import Base, engine, database_url
 
 import os
+
 
 class Incident(Base):
     __tablename__ = "incidents"
@@ -40,18 +41,23 @@ class RemediationLogs(Base):
     error_message = Column(String)
     started_at = Column(DateTime(timezone=True), nullable=True)
     completed_at = Column(DateTime(timezone=True), nullable=True)
-    time = Column(DateTime(timezone=True), nullable=True)
+    approved_by = Column(String, nullable=True)
     action = Column(String)
     details = Column(String)
 
 
-class Configurations(Base):
-    __tablename__ = "configurations"
+class RemediationRules(Base):
+    __tablename__ = "remediation_rules"
     id = Column(Integer, primary_key=True, index=True)
-    key = Column(String, unique=True, index=True)
-    value = Column(Text)
+    resource_type = Column(String, index=True)
+    issue_type = Column(String)
     description = Column(String, nullable=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    conditions = Column(JSON)
+    action = Column(String)
+    is_active = Column(Boolean, default=True)
+    auto_execute = Column(Boolean, default=False)
+    priority = Column(Integer, default=1)
+    max_attempts = Column(Integer, default=3)
 
 
 async def init_db():
