@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware # Cross-Origin Resource Shari
 import asyncio
 import logging
 from src.database.models import init_db
-from src.api.routes import services, remediations
+from src.api.routes import services, remediations, rules
 from src.core.redis_client import redis_client
 
 # Logger and app initialisation
@@ -27,6 +27,7 @@ app.add_middleware(
 # Include routers
 app.include_router(services.router, prefix="/api/services", tags=["services"])
 app.include_router(remediations.router, prefix="/api/remediations", tags=["remediations"])
+app.include_router(rules.router, prefix="/api/rules", tags=["rules"])
 
 # Root endpoint
 @app.get("/")
