@@ -13,7 +13,7 @@ class RuleService:
         self.db = db
 
     async def get_rule(self, rule_id: int) -> Optional[Dict[str, Any]]:
-        """Get a single rule by ID"""
+        # Get a single rule by ID
         rule_search = select(RemediationRules).where(RemediationRules.id == rule_id)
         result = await self.db.execute(rule_search)
         rule = result.scalar_one_or_none()
@@ -37,7 +37,7 @@ class RuleService:
     async def get_all_rules(
         self, resource_type: Optional[str] = None, is_active: Optional[bool] = None
     ) -> List[Dict[str, Any]]:
-        """Get all rules, optionally filtered by resource_type and is_active"""
+        # Get all rules, optionally filtered by resource_type and is_active
         rule_search = select(RemediationRules)
 
         if resource_type:
@@ -77,7 +77,7 @@ class RuleService:
         priority: int = 1,
         max_attempts: int = 3,
     ) -> int:
-        """Create a new remediation rule"""
+
         rule = RemediationRules(
             resource_type=resource_type,
             issue_type=issue_type,
@@ -110,7 +110,7 @@ class RuleService:
         priority: Optional[int] = None,
         max_attempts: Optional[int] = None,
     ) -> Dict[str, Any]:
-        """Update an existing rule"""
+
         rule_search = select(RemediationRules).where(RemediationRules.id == rule_id)
         rule_result = await self.db.execute(rule_search)
         rule = rule_result.scalar_one_or_none()
@@ -157,7 +157,7 @@ class RuleService:
         }
 
     async def delete_rule(self, rule_id: int) -> None:
-        """Delete a rule by ID"""
+
         rule_search = select(RemediationRules).where(RemediationRules.id == rule_id)
         rule_result = await self.db.execute(rule_search)
         rule = rule_result.scalar_one_or_none()
@@ -172,5 +172,4 @@ class RuleService:
         logger.info("Deleted rule %s", rule_id)
 
     async def toggle_rule_status(self, rule_id: int, is_active: bool) -> Dict[str, Any]:
-        """Toggle the active status of a rule"""
         return await self.update_rule(rule_id, is_active=is_active)
