@@ -12,7 +12,6 @@ router = APIRouter()
 
 # Class Definitions
 class RuleResponse(BaseModel):
-    """Structure of the rule response"""
     id: int
     resource_type: str
     issue_type: str
@@ -25,7 +24,6 @@ class RuleResponse(BaseModel):
     max_attempts: int
 
 class RuleCreateRequest(BaseModel):
-    """Structure of the rule creation request"""
     resource_type: str
     issue_type: str
     action: str
@@ -37,7 +35,6 @@ class RuleCreateRequest(BaseModel):
     max_attempts: int = 3
 
 class RuleUpdateRequest(BaseModel):
-    """Structure of the rule update request"""
     resource_type: Optional[str] = None
     issue_type: Optional[str] = None
     description: Optional[str] = None
@@ -105,7 +102,7 @@ async def get_all_rules(
 
 @router.get("/{rule_id}", response_model=RuleResponse, status_code=200)
 async def get_rule(rule_id: int, db: AsyncSession = Depends(get_db)):
-    """Get a specific rule by ID"""
+    # Get a specific rule by ID
     service = RuleService(db)
 
     try:
@@ -129,7 +126,6 @@ async def get_rule(rule_id: int, db: AsyncSession = Depends(get_db)):
 
 @router.put("/{rule_id}", response_model=RuleResponse, status_code=200)
 async def update_rule(rule_id: int, request: RuleUpdateRequest, db: AsyncSession = Depends(get_db)):
-    """Update an existing rule"""
     service = RuleService(db)
 
     try:
@@ -158,7 +154,7 @@ async def update_rule(rule_id: int, request: RuleUpdateRequest, db: AsyncSession
 
 @router.patch("/{rule_id}/deactivate", response_model=RuleResponse, status_code=200)
 async def deactivate_rule(rule_id: int, db: AsyncSession = Depends(get_db)):
-    """Deactivate a rule by setting is_active to False"""
+    # Deactivate a rule by setting is_active to False
     service = RuleService(db)
 
     try:

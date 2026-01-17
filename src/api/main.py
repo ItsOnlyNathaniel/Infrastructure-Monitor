@@ -1,4 +1,4 @@
-#Imports
+# Imports
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware # Cross-Origin Resource Sharing
 import asyncio
@@ -38,7 +38,7 @@ async def root():
         "version": "1.0.0"
         }
 
-#Startup and shutdown events
+# Startup and shutdown events
 @app.on_event("startup")
 async def event_startup():
     await redis_client.connect()

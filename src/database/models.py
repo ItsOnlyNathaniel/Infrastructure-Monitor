@@ -61,6 +61,7 @@ class RemediationRules(Base):
 
 
 async def init_db():
-    """Create database tables asynchronously. Call this at application startup."""
+    # Create database tables asynchronously.
+    # Called at application startup.
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)

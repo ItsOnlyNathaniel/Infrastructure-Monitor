@@ -1,5 +1,5 @@
 # Replaces health.py for monitoring status of services. Based on model schema
-#Imports
+# Imports
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
@@ -9,7 +9,7 @@ from src.core.database import get_db
 
 router = APIRouter()
 
-#Class Definitions
+# Class Definitions
 class MonitorStatus(BaseModel): # Structure of the monitoring status response
     resource_id: str
     resource_type: str

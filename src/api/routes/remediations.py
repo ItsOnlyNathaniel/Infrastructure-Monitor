@@ -1,5 +1,5 @@
 # Triggers and retrieves remediation actions for incidents
-#Imports
+# Imports
 from email import message
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -11,7 +11,7 @@ from src.core.database import get_db
 
 router = APIRouter()
 
-#Class Definitions
+# Class Definitions
 class RemediationResponse(BaseModel): # Structure of the remediation response
     remdiation_id: int
     status: str
@@ -25,7 +25,7 @@ class RemediationRequest(BaseModel): # Structure of the remediation request
     resource_type: str
     issue_type: str
 
-#Endpoints
+# Endpoints
 @router.post("/create", response_model=RemediationResponse, status_code=201)
 async def create_remediation(request: RemediationRequest, db: AsyncSession = Depends(get_db)):
     service = RemediationService(db)
@@ -97,4 +97,4 @@ async def get_remediation_status(remediation_id: str, db: AsyncSession = Depends
     except Exception as e:
         raise HTTPException(status_code = 500, detail = f"Failed to get remediation status: {str(e)}") from e
 
-#TODO: Add endpoints which accept or reject remediation actions
+# TODO: Add endpoints which accept or reject remediation actions
