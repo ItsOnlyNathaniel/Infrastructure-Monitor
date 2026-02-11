@@ -52,6 +52,16 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+#Localstack
+  Localstack:
+    image: localstack/localstack:latest
+    ports:
+      - "4566:4566"
+    environment:
+      - SERVICES=ec2,ecs,rds,lambda,cloudwatch
+      - DEBUG=1
+    volumes:
+      - ./localstack-init:/etc/localstack/init/ready.d
 # Volumes for data persistence
 volumes:
   redis_data:

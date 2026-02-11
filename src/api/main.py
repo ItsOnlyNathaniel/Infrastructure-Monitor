@@ -1,11 +1,14 @@
 # Imports
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware # Cross-Origin Resource Sharing
+from fastapi.responses import Response
 import asyncio
 import logging
+
 from src.database.models import init_db
 from src.api.routes import services, remediations, rules
 from src.core.redis_client import redis_client
+from src.core.metrics import get_metrics, get_metrics_content_type
 
 # Logger and app initialisation
 logger=logging.getLogger(__name__)
@@ -38,7 +41,14 @@ async def root():
         "version": "1.0.0"
         }
 
-# Startup and shutdown events
+@app.get("/metrics") #TODO: Log metric for services and workers
+async def metrics():
+    return Response(
+        content=get_metrics(),
+        media_type = get_metrics_content_type()
+    )
+
+#Startup and shutdown events
 @app.on_event("startup")
 async def event_startup():
     await redis_client.connect()
