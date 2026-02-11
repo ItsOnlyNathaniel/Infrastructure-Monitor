@@ -77,7 +77,6 @@ class RuleService:
         priority: int = 1,
         max_attempts: int = 3,
     ) -> int:
-
         rule = RemediationRules(
             resource_type=resource_type,
             issue_type=issue_type,
@@ -110,7 +109,6 @@ class RuleService:
         priority: Optional[int] = None,
         max_attempts: Optional[int] = None,
     ) -> Dict[str, Any]:
-
         rule_search = select(RemediationRules).where(RemediationRules.id == rule_id)
         rule_result = await self.db.execute(rule_search)
         rule = rule_result.scalar_one_or_none()
@@ -157,7 +155,6 @@ class RuleService:
         }
 
     async def delete_rule(self, rule_id: int) -> None:
-
         rule_search = select(RemediationRules).where(RemediationRules.id == rule_id)
         rule_result = await self.db.execute(rule_search)
         rule = rule_result.scalar_one_or_none()

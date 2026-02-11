@@ -1,23 +1,28 @@
 from pydantic import Field, BaseSettings
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class Settings(BaseSettings):
+
     #API Settings
-    api_host: str = Field(default="0.0.0.0", alias="API_HOST")
-    api_port: int = Field(default=8000, alias="API_PORT")
-    log_level: str = Field(default="INFO", alias="LOG_LEVEL")
-
-    #Database Settings
-    postgres_url: str = Field(alias="POSTGRES_URL")
-
-    #Redis Settings
-    redis_url: str = Field(alias="REDIS_URL")
+    API_HOST = os.getenv('API_HOST')
+    API_PORT = os.getenv('API_PORT')
+    LOG_LEVEL = os.getenv('LOG_LEVEL')
 
     #AWS Settings
-    aws_region: str = Field(default="us-east-1", alias="AWS_DEFAULT_REGION")
-    aws_access_key_id: str = Field(default="test", alias="AWS_ACCESS_KEY_ID")
+    AWS_REGION = os.getenv('AWS_REGION')
+    AWS_ACCESS_KEY_ID = os.getenv('AWS_ACCESS_KEY_ID')
+
+    #Database Settings
+    POSTGRES_URL = os.getenv('POSTGRES_URL')
+
+    #Redis Settings
+    REDIS_URL = os.getenv('REDIS_URL')
 
     #Localstack Settings
-    endpoint_url = Field(default=None, alias="AWS_ENDPOINT_URL")
+    ENDPOINT_URL = os.getenv('ENDPOINT_URL')
 
     #Monitoring Settings
     health_check_interval: int = 120 #TODO: Value should be reduced to 60 at a later stage
