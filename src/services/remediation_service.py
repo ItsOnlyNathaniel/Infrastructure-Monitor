@@ -5,17 +5,23 @@ import logging
 import uuid
 import datetime
 from src.database.models import Incident, RemediationLogs, Services
+from src.remediators.lambda_remediator import LambdaInstance
 from src.remediators.ec2_remediator import EC2Instance
 from src.remediators.ecs_remediator import ECSInstance
+from src.remediators.rds_remediator import RDSInstance
+from src.remediators.alb_remediator import ALBInstance
 
 logger = logging.getLogger(__name__)
 
-class RemediationService:
+class Remediationservice:
     def __init__(self, db: AsyncSession):
         self.db = db
         self.remediators = {
             "ec2": EC2Instance(),
             "ecs": ECSInstance(),
+            "rds": RDSInstance(),
+            "lambda": LambdaInstance(),
+            "alb": ALBInstance(),
         }
 
 
@@ -68,7 +74,7 @@ class RemediationService:
         return remediation_id
 
     # Finds the affected service and executes the remediation using the appropriate remediator
-    async def execute_remediation(self, remediation_id: str):
+    async def execute_remediation(self, remediation_id: int):
 
         remediation_search = select(RemediationLogs).where(RemediationLogs.id == int(remediation_id))
         remediation_result = await self.db.execute(remediation_search)

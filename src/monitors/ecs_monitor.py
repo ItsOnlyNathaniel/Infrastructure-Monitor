@@ -2,7 +2,7 @@
 import boto3
 import logging
 import datetime
-import os
+from src.core.config import Settings
 
 logger = logging.getLogger(__name__)
 

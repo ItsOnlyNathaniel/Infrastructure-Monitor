@@ -3,14 +3,14 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from src.database.models import Incident, Services, RemediationRules, RemediationLogs
 from src.core.redis_client import redis_client
-
+from typing import Optional
 logger = logging.getLogger(__name__)
 
 class DecisionService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def fetch_incident_info(self, incident_id: int):
+    async def fetch_incident_info(self, incident_id: Optional[int] = None, is_active: Optional[bool] = None):
         # Fetch incident data
         incident_search = select(Incident).where(Incident.id == incident_id)
         incident_result = await self.db.execute(incident_search)
@@ -46,13 +46,16 @@ class DecisionService:
         if not rule:
             logger.info("No matching remediation rule for incident %s - ignoring", incident_id)
             return "ignore"
+        else:
+            return rule
+
 
 # Find remediation rule matching the incident criteria
     async def fetch_remediation_rule(self, resource_type: str, issue_type: str):
         rule_search = select(RemediationRules).where(
             RemediationRules.resource_type == resource_type,
             RemediationRules.issue_type == issue_type,
-            bool(RemediationRules.is_active)
+            RemediationRules.is_active == True,
         ).order_by(RemediationRules.priority.desc())
 
         result = await self.db.execute(rule_search)
@@ -63,8 +66,9 @@ class DecisionService:
                 logger.info("Matching remediation rule %s found for resource_type %s and issue_type %s",
                 rule.id, resource_type, issue_type)
                 return rule
-            logger.info("No remediation rule found for resource_type %s and issue_type %s within attempt limits",
-             resource_type, issue_type)
+            else:
+                logger.info("No remediation rule found for resource_type %s and issue_type %s within attempt limits",
+                resource_type, issue_type)
 
 
     async def attempt_count(self, incident: Incident, rule: RemediationRules):
@@ -76,6 +80,12 @@ class DecisionService:
         )
         result = await self.db.execute(query)
         prior_fails = result.scalars().all()
-        return prior_fails < rule.max_attempts
 
-#TODO: Add filters
+        if prior_fails < rule.max_attempts:
+            logger.info("Max attempts exceeded")
+            return False
+        else:
+            logger.info("Incident has %s prior attempts at remediation")
+            return True
+
+#TODO: Add filtering to evaluate conditions against incident context

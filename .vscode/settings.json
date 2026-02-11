@@ -1,6 +1,6 @@
 {
     "pylint.args": [
-    "--disable=C0114,C0115,C0116,C0411,E0401"
+        "--disable=C0114,C0115,C0116,C0411,E0401,C0301,C0209"
     ],
     "basedpyright.analysis.diagnosticSeverityOverrides": {
         "reportUnknownMemberType": "none",
