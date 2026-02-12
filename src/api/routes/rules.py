@@ -1,17 +1,17 @@
 # Endpoints for managing remediation rules
 # Imports
-import resource
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel
-from src.services.RuleService import RuleService
+from src.services.rule_service import RuleService
 from src.core.database import get_db
 
 router = APIRouter()
 
 # Class Definitions
 class RuleResponse(BaseModel):
+    # Structure of the rule response
     id: int
     resource_type: str
     issue_type: str
@@ -107,13 +107,9 @@ async def get_rule(rule_id: int, db: AsyncSession = Depends(get_db)):
 
     try:
         rule = await service.get_rule(rule_id)
-        return RuleResponse(
-            rule_id = rule_id,
-            resource_type = request.resource_type,
-            issue_type = request.issue_type,
-            action = request.action,
-            is_active = request.is_active,
-        )
+        if rule is None:
+            raise HTTPException(status_code=404, detail=f"Rule with id {rule_id} not found")
+        return RuleResponse(**rule)
 
     except ValueError as ve:
         raise HTTPException(status_code=404, detail=str(ve)) from ve

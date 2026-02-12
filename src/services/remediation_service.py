@@ -1,6 +1,7 @@
 # Imports
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from typing import Optional, Any
 import logging
 import uuid
 import datetime
@@ -62,7 +63,7 @@ class Remediationservice:
         remediation = RemediationLogs(
             incident_id = incident.id if incident else None,
             service_id = service.id,
-            action = issue_type,
+            issue_type = issue_type,
             status = "pending"
         )
         self.db.add(remediation)
@@ -74,7 +75,11 @@ class Remediationservice:
         return remediation_id
 
     # Finds the affected service and executes the remediation using the appropriate remediator
-    async def execute_remediation(self, remediation_id: int):
+    async def execute_remediation(self, remediation_id: int, resource_type: Optional[str] = None):
+
+        remediator: Any | None = self.remediators.get(resource_type.lower())
+        if not remediator:
+            raise ValueError(f"No remediator found for resource type: {resource_type}")
 
         remediation_search = select(RemediationLogs).where(RemediationLogs.id == int(remediation_id))
         remediation_result = await self.db.execute(remediation_search)
