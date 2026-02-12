@@ -1,10 +1,8 @@
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, Text
+from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.sql import func
 from sqlalchemy.ext.asyncio import create_async_engine
 from src.core.database import Base, engine, database_url
-
-import os
 
 
 class Incident(Base):
@@ -12,6 +10,7 @@ class Incident(Base):
     id = Column(Integer, primary_key=True, index=True)
     service_id = Column(Integer, index=True)
     name = Column(String, index=True)
+    issue_type = Column(String, nullable = True)
     status = Column(String)
     description = Column(String)
     severity = Column(String(50))
