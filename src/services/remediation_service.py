@@ -14,7 +14,7 @@ from src.remediators.alb_remediator import ALBInstance
 
 logger = logging.getLogger(__name__)
 
-class Remediationservice:
+class RemediationService:
     def __init__(self, db: AsyncSession):
         self.db = db
         self.remediators = {

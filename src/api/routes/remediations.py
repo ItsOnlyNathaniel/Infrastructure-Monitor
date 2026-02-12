@@ -3,10 +3,10 @@
 from email import message
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import List, Optional
+from typing import Optional
 from pydantic import BaseModel
 import datetime
-from src.services.RemediationService import RemediationService
+from src.services.remediation_service import RemediationService
 from src.core.database import get_db
 
 router = APIRouter()
@@ -55,8 +55,7 @@ async def create_remediation(request: RemediationRequest, db: AsyncSession = Dep
 
 
 @router.post("/{remediation_id}/execute", response_model=RemediationResponse, status_code=200)
-async def execute_remediation(request: RemediationResponse, db: AsyncSession = Depends(get_db)):
-    remediation_id: str
+async def execute_remediation(remediation_id: int, request: RemediationResponse, db: AsyncSession = Depends(get_db)):
     service = RemediationService(db)
 
     try:
@@ -78,7 +77,7 @@ async def execute_remediation(request: RemediationResponse, db: AsyncSession = D
 
 
 @router.get("/{remediation_id}/", response_model = RemediationResponse, status_code=200)
-async def get_remediation_status(remediation_id: str, db: AsyncSession = Depends(get_db)):
+async def get_remediation_status(remediation_id: int, db: AsyncSession = Depends(get_db)):
     service = RemediationService(db)
 
     try:

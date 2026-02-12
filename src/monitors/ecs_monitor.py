@@ -11,8 +11,8 @@ class ECSMonitor:
     def __init__(self):
         self.ecs = boto3.client(
             "ecs",
-            region_name=os.getenv("AWS_DEFAULT_REGION"),
-            endpoint_url=os.getenv("AWS_ENDPOINT_URL"),
+            region_name=Settings.AWS_REGION,
+            endpoint_url=Settings.ENDPOINT_URL,
         )
 
     async def health_check(
