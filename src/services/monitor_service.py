@@ -46,11 +46,11 @@ class MonitorService:
 
                 # Update service status in database
                 if service:
-                    service.status = status["status"]
+                    service.status = status
                     service.last_checked = datetime.datetime.now()
                     await self.db.commit()
 
-                    #Create Incident where issues are present but not already identified
+                    # Create Incident where issues are present but not already identified
                     if status["issues"]:
 
                         incident = Incident(
@@ -66,11 +66,11 @@ class MonitorService:
                 else:
                     logger.warning("Service not found in DB: %s", resource_id)
 
-                #Cache the results
+                # Cache the results
                 cache_key = f"health_check_{resource_type}_{resource_id}"
                 await redis_client.set(cache_key, status, ttl=300)
 
-            #Catch exceptions and return error status
+            # Catch exceptions and return error status
             except Exception as e:
                 logger.error("Error checking health of %s %s: %s", resource_type, resource_id, str(e))
                 results.append({

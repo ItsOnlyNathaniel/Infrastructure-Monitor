@@ -6,18 +6,22 @@ from sqlalchemy import select
 
 from src.core.config import settings
 from src.core.database import AsyncSessionLocal, engine
-from src.core.redis_client import RedisClient, redis_client
+from src.core.redis_client import redis_client
 from src.database.models import Incident, Services
-from src.services.DecisionService import DecisionService
-from src.services.RemediationService import RemediationService
+from src.services.decision_service import DecisionService
+from src.services.remediation_service import RemediationService
 
 logger = logging.getLogger(__name__)
 
 
 class RemediationWorker:
+    #Note: Incident polling/processing is still WIP in this file. This class focuses on
+    #initialization, DB/Redis resource management, and graceful shutdown handling.
+
     def __init__(self, *, redis = redis_client, poll_interval_seconds = settings.HEALTH_CHECK_INTERVAL, max_concurrency = 5):
         self.redis = redis
         self.poll_interval_seconds = poll_interval_seconds
+        self.max_concurrency = max_concurrency
         self._shutdown_event: asyncio.Event = asyncio.Event()
         self._started: bool = False
 
@@ -47,58 +51,59 @@ class RemediationWorker:
         logger.info("RemediationWorker shutdown complete")
 
     async def get_open_incidents(self):
-        async with AsyncSessionLocal() as db:
-            incident_search = (
-                select(Incident)
-                .where(Incident.status == "Open")
-                .order_by(Incident.created_at.asc())
-            )
 
-        incident_results = await db.execute(incident_search)
-        incidents = incident_results.scalar().all()
-        return [incident.id for incident in incidents]
-
-    async def update_incident_status(
-        self, incident_id: int, status: str, error_message: Optional[str] = None
-    ):
         try:
             async with AsyncSessionLocal() as db:
-                incident_search = select(Incident).where(Incident.id == incident_id)
-                incident_result = await db.execute(incident_search)
-                incident = incident_result.scalar_one_or_none()
-
-                if not incident:
-                    logger.warning(
-                        "Incident %s not found for status update", incident_id
-                    )
-                    return
-
-                incident.status = status
-
-                # Set resolved_at if status indicates resolution
-                if status in ("resolved", "closed", "completed"):
-                    if incident.resolved_at is None:
-                        incident.resolved_at = datetime.now()
-
-                await db.commit()
-                await db.refresh(incident)
-
-                logger.info(
-                    "Updated incident status",
-                    extra={
-                        "incident_id": incident_id,
-                        "status": status,
-                        "error_message": error_message,
-                    },
+                incident_search = (
+                    select(Incident)
+                    .where(Incident.status == "open")
+                    .order_by(Incident.created_at.asc())
                 )
+                incident_results = await db.execute(incident_search)
+                incidents = incident_results.scalars().all()
+
+            incident_ids = [incident.id for incident in incidents]
+
+            logger.debug(
+                "Fetched open incidents",
+                extra={"count": len(incident_ids), "incident_ids": incident_ids},
+            )
+            return incident_ids
 
         except Exception as e:
             logger.error(
-                "Failed to update incident status for %s: %s",
-                incident_id,
+                "Failed to fetch open incidents: %s",
                 str(e),
-                extra={"incident_id": incident_id, "status": status},
                 exc_info=True,
+            )
+            return []
+
+    async def update_incident_status(
+        self, incident_id: int, status: str, error_message: Optional[str] = None):
+        async with AsyncSessionLocal() as db:
+            incident_search = select(Incident).where(Incident.id == incident_id)
+            incident_result = await db.execute(incident_search)
+            incident = incident_result.scalar_one_or_none()
+
+            if not incident:
+                logger.warning(
+                    "Incident %s not found for status update", incident_id
+                )
+                return
+
+            incident.status = status
+
+            # Set resolved_at if status indicates resolution
+            if status in ("resolved", "closed", "completed"):
+                if incident.resolved_at is None:
+                    incident.resolved_at = datetime.now()
+
+            await db.commit()
+            await db.refresh(incident)
+
+            logger.info(
+                "Updated incident status",
+                extra={"incident_id": incident_id, "status": status,"error_message": error_message},
             )
 
     async def process_incident(self, incident_id: int):
@@ -202,3 +207,20 @@ class RemediationWorker:
                     str(update_error),
                     extra={"incident_id": incident_id}
                 )
+
+
+    async def run(self):
+        await self.start()
+        logger.info("Worker started, polling every %ds", self.poll_interval_seconds)
+        try:
+            while not self._shutdown_event.is_set():
+                try:
+                    incidents = await self.get_open_incidents()
+                    logger.info("Found %d open incidents", len(incidents))
+                    for incident_id in incidents:
+                        await self.process_incident(incident_id)
+                except Exception as e:
+                    logger.error("Error in worker loop: %s", str(e), exec_info=True)
+                await asyncio.sleep(self.poll_interval_seconds)
+        finally:
+            await self.shutdown("Run loop exited")
