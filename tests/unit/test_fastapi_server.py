@@ -28,7 +28,7 @@ def test_root_endpoint_docker(docker_client):
 def test_services_check_basic_http(client, override_monitor_check, override_db):
     """
     Exercise POST /api/services/check with the expected payload/shape.
-    Uses monkeypatch to stub MonitorService so no external calls are made.
+    Uses monkeypatch to stub monitor_service so no external calls are made.
     """
 
     _ = override_monitor_check

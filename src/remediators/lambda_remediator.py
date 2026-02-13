@@ -1,5 +1,6 @@
 import boto3
 import logging
+from src.core.config import Settings
 import os
 
 logger = logging.getLogger(__name__)
@@ -8,8 +9,8 @@ class LambdaInstance:
     def __init__(self):
         self.lambda_client = boto3.client(
             'lambda',
-            region_name = os.getenv("AWS_DEFAULT_REGION"),
-            endpoint_url = os.getenv("AWS_ENDPOINT_URL")
+            region_name = Settings.AWS_REGION,
+            endpoint_url = Settings.ENDPOINT_URL
             )
 
     async def reboot_instance(self, function_name: str):
