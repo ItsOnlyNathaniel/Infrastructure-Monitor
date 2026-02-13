@@ -13,7 +13,7 @@ from sqlalchemy.pool import StaticPool  # type: ignore
 from src.api.main import app
 from src.database.models import Base
 from src.core.database import get_db
-from src.services.MonitorService import MonitorService
+from src.services.monitor_service import MonitorService
 
 
 # Setting up an in-memory database for testing
@@ -100,7 +100,7 @@ def override_db():
 def docker_client():
     """Create an HTTP client for testing against the Dockerized server."""
     docker_url = os.getenv("DOCKER_TEST_URL", "http://localhost:8000")
-    
+
     # Check if Docker container is running
     with httpx.Client(base_url=docker_url, timeout=10.0) as client:
         try:
@@ -112,4 +112,3 @@ def docker_client():
                 pytest.skip("Docker container not responding correctly at %s", docker_url)
         except httpx.ConnectError:
             pytest.skip("Docker container not accessible at %s. Make sure it's running.", docker_url)
-       

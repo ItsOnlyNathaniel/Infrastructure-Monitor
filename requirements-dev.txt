@@ -1,0 +1,22 @@
+# Include production requirements
+-r requirements.txt
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+httpx==0.25.2
+
+# Code quality
+black==23.12.0
+flake8==7.0.0
+mypy==1.7.1
+pylint==3.0.3
+
+# Development tools
+ipython==8.18.0
+ipdb==0.13.13
+
+# Type stubs
+types-redis==4.6.0.11
+types-pyyaml==6.0.12.12

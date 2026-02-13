@@ -1,11 +1,11 @@
 # Imports
 import boto3
+from botocore.exceptions import ClientError
 import logging
 import datetime
-import os
 import asyncio
 from typing import Dict, List, Any
-from botocore.exceptions import ClientError
+from src.core.config import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -14,15 +14,19 @@ class CloudwatchMonitor:
     def __init__(self):
         self.cloudwatch_client = boto3.client(
             "cloudwatch",
-            region_name=os.getenv("AWS_DEFAULT_REGION"),
-            endpoint_url=os.getenv("AWS_ENDPOINT_URL"),
+            region_name=Settings.AWS_REGION,
+            endpoint_url=Settings.ENDPOINT_URL
         )
 
     async def _get_metric_data(
-        self, namespace: str, 
-        metric_name: str, dimensions: List[Dict[str, str]],
-        start_time: datetime.datetime, end_time: datetime.datetime, 
-        period: int, statistics: List[str],
+        self,
+        namespace: str,
+        metric_name: str,
+        dimensions: List[Dict[str, str]],
+        start_time: datetime.datetime,
+        end_time: datetime.datetime,
+        period: int,
+        statistics: List[str],
     ) -> Dict[str, Any]:
         """Helper method to get metric data from CloudWatch."""
         try:
@@ -61,8 +65,11 @@ class CloudwatchMonitor:
             }
 
     async def get_ec2_metrics(
-        self, instance_id: str,
-        start_time: datetime.datetime, end_time: datetime.datetime, period: int = 300,
+        self,
+        instance_id: str,
+        start_time: datetime.datetime,
+        end_time: datetime.datetime,
+        period: int = 300,
     ) -> Dict[str, Any]:
 
         namespace = "AWS/EC2"
