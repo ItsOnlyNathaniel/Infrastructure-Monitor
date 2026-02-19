@@ -1,11 +1,12 @@
 # Imports
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from typing import Optional, Any
+from typing import Optional
 import logging
 import uuid
 import datetime
 from src.database.models import Incident, RemediationLogs, Services
+from src.core.circuit_breaker import circuit_breaker
 from src.remediators.lambda_remediator import LambdaInstance
 from src.remediators.ec2_remediator import EC2Instance
 from src.remediators.ecs_remediator import ECSInstance
@@ -24,7 +25,6 @@ class RemediationService:
             "lambda": LambdaInstance(),
             "alb": ALBInstance(),
         }
-
 
     async def get_remediation_status(self, remediation_id: int):
         current_search = select(RemediationLogs).where(RemediationLogs.id == int(remediation_id))
@@ -77,34 +77,45 @@ class RemediationService:
     # Finds the affected service and executes the remediation using the appropriate remediator
     async def execute_remediation(self, remediation_id: int, resource_type: Optional[str] = None):
 
-        remediator: Any | None = self.remediators.get(resource_type.lower())
-        if not remediator:
-            raise ValueError(f"No remediator found for resource type: {resource_type}")
-
         remediation_search = select(RemediationLogs).where(RemediationLogs.id == int(remediation_id))
         remediation_result = await self.db.execute(remediation_search)
         remediation = remediation_result.scalar_one_or_none()
         remediation.status = "executing"
         await self.db.commit()
 
-        try:
-            service_search = select(Services).where(Services.id == remediation.service_id)
-            service_result = await self.db.execute(service_search)
-            service = service_result.scalar_one()
+        service_search = select(Services).where(Services.id == remediation.service_id)
+        service_result = await self.db.execute(service_search)
+        service = service_result.scalar_one()
 
+        can_attempt, reason = await circuit_breaker.can_attempt_remediation(
+            service.resource_id, service.resource_type
+        )
+        if not can_attempt:
+            logger.warning("Remediation blocked by circuit-breaker",
+                extra={
+                    "remediation_id": remediation_id,
+                    "resource_id": service.resource_id,
+                    "reason": reason,
+                }
+            )
+            remediation.status = "blocked"
+            remediation.error_message = reason
+            await self.db.commit()
+
+        try:
             remediator = self.remediators.get(service.resource_type.lower())
             if not remediator:
                 raise ValueError("No remediator for type %s", service.resource_type)
 
             await remediator.remediate(service.resource_id, remediation.action)
-
+            await circuit_breaker.successful_attempt(service.resource_id, service.resource_type)
             remediation.status = "completed"
             remediation.completed_at = datetime.datetime.now()
             await self.db.commit()
-
             logger.info("Executed remediation %s successfully", remediation.id)
 
         except Exception as e:
+            await circuit_breaker.failed_attempt(service.resource_id, service.resource_type)
             logger.error("Remediation %s failed: %s", remediation_id, str(e))
             remediation.status = "failed"
             remediation.error_message = str(e)
