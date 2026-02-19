@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from typing import List
 from pydantic import BaseModel
 from src.services.monitor_service import MonitorService
+from src.core.circuit_breaker import CircuitBreaker
 from src.core.database import get_db
 
 router = APIRouter()
@@ -58,3 +59,9 @@ async def get_all_services(db: AsyncSession = Depends(get_db)):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to get all services: {str(e)}") from e
+
+@router.get("/{resource_type}/{resource_id}/circuit-breaker")
+async def get_circuit_breaker_status(resource_type: str, resource_id: str):
+    """Get circuit breaker status for a resource"""
+    status = await CircuitBreaker.get_status(resource_id, resource_type)
+    return status
