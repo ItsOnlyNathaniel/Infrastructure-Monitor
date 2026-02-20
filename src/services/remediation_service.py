@@ -1,12 +1,14 @@
 # Imports
+import asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from typing import Optional
+from typing import Any, Optional
 import logging
 import uuid
 import datetime
 from src.database.models import Incident, RemediationLogs, Services
 from src.core.circuit_breaker import circuit_breaker
+from src.services.verification_service import VerificationService
 from src.remediators.lambda_remediator import LambdaInstance
 from src.remediators.ec2_remediator import EC2Instance
 from src.remediators.ecs_remediator import ECSInstance
@@ -77,6 +79,8 @@ class RemediationService:
     # Finds the affected service and executes the remediation using the appropriate remediator
     async def execute_remediation(self, remediation_id: int, resource_type: Optional[str] = None):
 
+        verification_service = VerificationService(self.db)
+
         remediation_search = select(RemediationLogs).where(RemediationLogs.id == int(remediation_id))
         remediation_result = await self.db.execute(remediation_search)
         remediation = remediation_result.scalar_one_or_none()
@@ -103,7 +107,7 @@ class RemediationService:
             await self.db.commit()
 
         try:
-            remediator = self.remediators.get(service.resource_type.lower())
+            remediator: Any | None = self.remediators.get(service.resource_type.lower())
             if not remediator:
                 raise ValueError("No remediator for type %s", service.resource_type)
 
@@ -113,6 +117,8 @@ class RemediationService:
             remediation.completed_at = datetime.datetime.now()
             await self.db.commit()
             logger.info("Executed remediation %s successfully", remediation.id)
+
+            asyncio.create_task(verification_service.verify_remediation(str(remediation_id), 60))
 
         except Exception as e:
             await circuit_breaker.failed_attempt(service.resource_id, service.resource_type)

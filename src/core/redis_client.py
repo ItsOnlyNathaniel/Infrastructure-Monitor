@@ -9,7 +9,7 @@ class RedisClient:
 
     async def connect(self):
         self.client = await redis.from_url(
-            settings.redis_url,
+            settings.REDIS_URL,
             encoding="utf-8",
             decode_responses=True,
         )
@@ -25,8 +25,8 @@ class RedisClient:
         else:
             return None
 
-    async def set(self, key: str, value: dict, ttl: int = 300):
-            await self.client.setex(
+    async def set(self, key: str, value, ttl: int = 300):
+        await self.client.setex(
             key,
             ttl,
             json.dumps(value)
