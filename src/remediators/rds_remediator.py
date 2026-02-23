@@ -1,7 +1,7 @@
 from datetime import datetime
 import boto3
 import logging
-from src.core.config import Settings
+from src.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -9,8 +9,8 @@ class RDSInstance:
     def __init__(self):
         self.rds = boto3.client(
             'rds',
-            region_name = Settings.AWS_REGION,
-            endpoint_url = Settings.ENDPOINT_URL
+            region_name = settings.AWS_REGION,
+            endpoint_url = settings.ENDPOINT_URL
             )
 
     async def start_instance(self, db_instance_identifier: str):

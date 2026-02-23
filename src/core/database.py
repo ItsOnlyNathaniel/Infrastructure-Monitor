@@ -4,7 +4,7 @@ from sqlalchemy.orm import sessionmaker, declarative_base
 from src.core.config import settings
 
 #  Database configuration
-raw_db_url = settings.postgres_url
+raw_db_url = settings.POSTGRES_URL
 
 database_url = raw_db_url
 if database_url.startswith("postgresql://"):

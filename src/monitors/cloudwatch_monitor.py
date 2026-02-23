@@ -5,7 +5,7 @@ import logging
 import datetime
 import asyncio
 from typing import Dict, List, Any
-from src.core.config import Settings
+from src.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -14,8 +14,8 @@ class CloudwatchMonitor:
     def __init__(self):
         self.cloudwatch_client = boto3.client(
             "cloudwatch",
-            region_name=Settings.AWS_REGION,
-            endpoint_url=Settings.ENDPOINT_URL
+            region_name=settings.AWS_REGION,
+            endpoint_url=settings.ENDPOINT_URL
         )
 
     async def _get_metric_data(

@@ -1,4 +1,6 @@
-FROM python:3.11-slim
+# Build for host architecture to avoid QEMU emulation (which can crash with "signal: aborted")
+ARG TARGETPLATFORM
+FROM --platform=$TARGETPLATFORM python:3.12-slim
 
 WORKDIR /app
 

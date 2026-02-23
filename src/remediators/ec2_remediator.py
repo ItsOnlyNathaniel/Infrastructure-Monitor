@@ -1,6 +1,6 @@
 import boto3
 import logging
-from src.core.config import Settings
+from src.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -8,8 +8,8 @@ class EC2Instance:
     def __init__(self):
         self.ec2 = boto3.client(
             'ec2',
-            region_name = Settings.AWS_REGION,
-            endpoint_url = Settings.ENDPOINT_URL
+            region_name = settings.AWS_REGION,
+            endpoint_url = settings.ENDPOINT_URL
             )
 
     async def start_instance(self, instance_id: str):

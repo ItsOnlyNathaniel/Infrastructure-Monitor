@@ -1,3 +1,9 @@
 venv/
 .venv/
 .env
+*.pyc
+*.key
+*.crt
+*.pem
+*.pickle
+rootkey.csv
