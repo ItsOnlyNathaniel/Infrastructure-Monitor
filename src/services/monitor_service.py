@@ -4,7 +4,6 @@ from typing import Any, List
 from sqlalchemy import select
 import datetime
 import logging
-from src.core.database import get_db
 from src.database.models import Services, Incident
 from src.core.redis_client import redis_client
 from src.monitors.ec2_monitor import EC2Monitor
@@ -36,7 +35,7 @@ class MonitorService:
         results = []
         for resource_id in resource_ids:
             try:
-                status = await monitor.check_health(resource_id)
+                status = await monitor.health_check(resource_id)
                 results.append(status)
 
                 # Find the service

@@ -11,8 +11,7 @@ from sqlalchemy.orm import sessionmaker  # type: ignore
 from sqlalchemy.pool import StaticPool  # type: ignore
 
 from src.api.main import app
-from src.database.models import Base
-from src.core.database import get_db
+from src.core.database import get_db, Base
 from src.services.monitor_service import MonitorService
 
 
@@ -93,6 +92,17 @@ def override_db():
     app.dependency_overrides[get_db] = _override_get_db
     yield _override_get_db
     app.dependency_overrides.clear()
+
+@pytest.fixture()
+def client(db_session, monkeypatch):
+    async def mock_init_db(): pass
+    async def mock_redis_connect(): pass
+
+    monkeypatch.setattr("src.api.main.init_db", mock_init_db)
+    monkeypatch.setattr("src.core.redis_client.redis_client.connect", mock_redis_connect)
+
+    with TestClient(app) as test_client:
+        yield test_client
 
 
 # Fixture for testing against Docker container

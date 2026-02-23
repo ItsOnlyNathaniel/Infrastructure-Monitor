@@ -1,6 +1,6 @@
 import boto3
 import logging
-from src.core.config import Settings
+from src.core.config import settings
 import re
 
 logger = logging.getLogger(__name__)
@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 class ECSInstance:
     def __init__(self):
         self.ecs = boto3.client(
-            "ecs", region_name=Settings.AWS_REGION, endpoint_url=Settings.ENDPOINT_URL
+            "ecs", region_name=settings.AWS_REGION, endpoint_url=settings.ENDPOINT_URL
         )
 
     def _parse_resource_id(self, resource_id: str):  # Generated

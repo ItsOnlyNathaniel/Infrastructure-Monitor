@@ -2,7 +2,7 @@
 import boto3
 import logging
 import datetime
-from src.core.config import Settings
+from src.core.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -11,8 +11,8 @@ class ECSMonitor:
     def __init__(self):
         self.ecs = boto3.client(
             "ecs",
-            region_name=Settings.AWS_REGION,
-            endpoint_url=Settings.ENDPOINT_URL,
+            region_name=settings.AWS_REGION,
+            endpoint_url=settings.ENDPOINT_URL,
         )
 
     async def health_check(

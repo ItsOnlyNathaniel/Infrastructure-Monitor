@@ -59,7 +59,7 @@ async def update_incident(incident_id: int, status: str, db: AsyncSession = Depe
     service = IncidentService(db)
 
     try:
-        await service.update_incident(incident_id, status)
+        await service.update_incident(incident_id)
         return IncidentResponse(status="updated")
 
     except Exception as e:

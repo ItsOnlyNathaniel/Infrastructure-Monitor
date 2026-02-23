@@ -1,3 +1,4 @@
+import datetime
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from sqlalchemy.dialects.postgresql import JSON
 from sqlalchemy.sql import func
@@ -19,7 +20,19 @@ class Incident(Base):
     resolved_at = Column(DateTime(timezone=True), nullable=True)
 
 
-class Services(Base):
+class Services(Base): # Database records tracking/monitoring all RESOURCES
+    """
+    Tracks AWS resources being monitored.
+    
+    Note: Despite the name 'Services', this table represents individual
+    AWS resources (EC2 instances, RDS databases, etc). The naming is
+    historical and will be refactored to 'Resources' later.
+    
+    Fields:
+        id: Internal tracking ID
+        resource_id: AWS resource identifier (e.g., 'i-12345', 'mydb-prod')
+        resource_type: AWS service type (e.g., 'ec2', 'rds')
+    """
     __tablename__ = "services"
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, index=True)
@@ -43,6 +56,10 @@ class RemediationLogs(Base):
     approved_by = Column(String, nullable=True)
     action = Column(String)
     details = Column(String)
+    verification_status = Column(String)
+    verification_timestamp = Column(DateTime(timezone=True), nullable=True)
+    verification_details = Column(JSON)
+
 
 
 class RemediationRules(Base):
